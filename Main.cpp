@@ -171,5 +171,6 @@ int main()
     q.enqueue("num 3");
     q.enqueue("num 4");
     q.peek();
+    q.display();
     return 0;
 }
