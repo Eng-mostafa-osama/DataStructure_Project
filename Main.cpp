@@ -78,22 +78,98 @@ class stack{
         }
     }
 };
+
+class queue{
+    private:
+    int queue_Front,queue_Tail;
+    string* queueArray;
+    int size;
+    int current_Size;
+
+    public:
+    queue(int size){
+        this -> size = size;
+        queueArray = new string[size];
+        queue_Front = 0;
+        queue_Tail = 0;
+        current_Size = 0;
+
+    }
+    ~queue() {
+        delete[] queueArray; // Free dynamically allocated memory
+    }
+    bool isEmpty(){
+        if(current_Size == 0)
+        {
+            cout <<"the Queue is empty"<<endl ;
+            return true;
+        }
+        else
+        return false;
+        
+        
+    }
+    bool isFull(){
+        return current_Size == size;
+          
+    }
+   
+    void enqueue(string item)
+    {
+        if(isFull() == true){
+            cout << "Queue Overflow" << endl;
+        }
+        else{
+        queueArray[queue_Tail] = item;
+        queue_Tail = (queue_Tail + 1) % size; // Circular behavior
+        current_Size++;}
+        
+    }
+
+    void dequeue(){
+        if(isEmpty() == true){
+            cout << "Queue Underflow" << endl;
+        }
+        else{
+        string value = queueArray[queue_Front];
+        queue_Front = (queue_Front + 1) % size; // Circular behavior
+        current_Size--;
+    }
+    }
+
+    void peek() {
+        if (isEmpty()) {
+            cout << "Queue is empty. No peek value." << endl;
+            
+        }
+         cout << queueArray[queue_Front] << endl;
+    }
+
+    void display() {
+        if (isEmpty()) {
+            cout << "Queue is empty." << endl;
+            return;
+        }
+        cout << "Queue Contents:" << endl;
+
+        int count = 0;
+        int index = queue_Front;
+        while (count < current_Size) {
+            cout << queueArray[index] << endl;
+            index = (index + 1) % size;
+            count++;
+        }
+        
+        
+    }
+};
 int main()
 {
-    stack mystack(5);
-    for (int i = 0; i < 4; i++)
-    {
-        mystack.push(i);
-    }
-    mystack.display();
-    mystack.getTop();
-    mystack.isFull();
-    for (int i = 0; i < 5; i++)
-    {
-        mystack.pop();
-    }
-    mystack.display();
-    mystack.getTop();
-    mystack.isEmpty();
+    queue q(4);
+    q.enqueue("num 1");
+    q.enqueue("num 2");
+    q.enqueue("num 3");
+    q.enqueue("num 4");
+    q.peek();
     return 0;
 }
