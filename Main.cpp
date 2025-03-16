@@ -46,16 +46,16 @@ class stack{
         }
     }
 
-    int pop()
+    void pop()
     {
         if(isEmpty() == true){
             cout << "Stack Underflow";
-            return -1;
+           
         }
         else{
             int item = stackArray[top--];
             cout << "popped item: "<< item << endl;
-            return item;
+            
         }
     }
 
