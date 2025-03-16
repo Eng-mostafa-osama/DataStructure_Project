@@ -1,5 +1,11 @@
 #include <iostream>
 using namespace std;
+struct Luggage{
+    string passengerName; // Passenger name
+    string ticketClass;  // Ticket class
+    double weight;      // Weight of the luggage
+    int bagNumber;    // Bag number
+};
 class stack{
     private:
     int* stackArray; // Array to store stack elements
@@ -10,7 +16,7 @@ class stack{
     stack(int size) //constructor
     {
         this -> size = size;
-        stackArray = new int(size);
+        stackArray = new int[size];
         top = -1;
     }
    
