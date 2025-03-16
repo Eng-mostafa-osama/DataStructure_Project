@@ -1,14 +1,25 @@
 #include <iostream>
 using namespace std;
-struct Luggage{
+class Luggage{
+    private:
     string passengerName; // Passenger name
     string ticketClass;  // Ticket class
     double weight;      // Weight of the luggage
-    int bagNumber;    // Bag number
+    int bagNumber;     // Bag number
+public:
+Luggage(string passengerName, string ticketClass, double weight, int bagNumber) {
+        this->passengerName = passengerName;
+        this->ticketClass = ticketClass;
+        this->weight = weight;
+        this->bagNumber = bagNumber;
+    } // Constructor to initialize luggage details
+    Luggage() : passengerName(""), ticketClass(""), weight(0.0), bagNumber(0) {} // Default constructor
+
 };
+
 class stack{
     private:
-    int* stackArray; // Array to store stack elements
+    int *stackArray; // Array to store stack elements
     int size;   // Maximum size
     int top;    // Index of the top element
 
