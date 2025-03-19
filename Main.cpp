@@ -7,6 +7,7 @@
 #include <fstream>
 #include <chrono>
 #include <iomanip>
+#include <sstream>
 using namespace std;
 
 // CSV Logging Functions
