@@ -35,6 +35,18 @@ void logToCSV(const string &bagId)
     }
 }
 
+char trim(const string &str)
+{
+    size_t first = str.find_first_not_of(" \t\n\r");
+    if (first == string::npos)
+    {
+        throw "no input detected";
+    }
+    size_t last = str.find_last_not_of(" \t\n\r");
+    string trimmed = str.substr(first, last - first + 1);
+    return trimmed[0];
+}
+
 void printCSVContents()
 {
     ifstream csvFile("departure_log.csv");
@@ -182,16 +194,30 @@ int main()
     int main_Menu_Choice, luggage_Menu_Choice, passengers_count;
     int luggage_Id = 0;
     string passenger_Name, luggage_Id_Prefix;
-    int luggage_Number;
+    int luggage_Number, ticket_Id;
     double luggage_Weight;
     bool to_Main_Menu = false;
     bool add_Passenger_Valid = false;
     bool switch_Loops = false;
 
-
-    Queue departure_Conveyer_Belt(stack_Queue_Size);           
-    Queue arrival_Conveyer_Belt(stack_Queue_Size);            
+    Queue departure_Conveyer_Belt(stack_Queue_Size);
+    Queue arrival_Conveyer_Belt(stack_Queue_Size);
     Stack plane_Cargo(stack_Queue_Size);
+   /*  try
+    {
+        string name, result;
+        getline(cin, name);
+        cout << name << endl;
+        try{
+        result = trim(name);
+        }
+        
+        cout << result << endl;
+    }
+    catch (const char *error)
+    {
+       
+    } */
 
     while (true)
     {
@@ -223,7 +249,7 @@ int main()
             clearScreen();
             while (!to_Main_Menu)
             {
-                cout<< "1. Enter passengers luggage\t2. Show luggage in conveyer belt\n	3. show luggage in plane’s cargo\t4.Exit application"<< endl;
+                cout << "1. Enter passengers luggage\t2. Show luggage in conveyer belt\n	3. show luggage in plane’s cargo\t4.Exit application" << endl;
                 cin >> luggage_Menu_Choice;
                 switch (luggage_Menu_Choice)
                 {
@@ -233,37 +259,133 @@ int main()
                     while (!add_Passenger_Valid)
                     {
                         cout << "Enter Passenger Name\n";
-                        cin >> passenger_Name;
+                        getline(cin, passenger_Name);
                         cout << "Enter the passenger class (b/e): " << endl;
-                        cin >> passenger_Class;
-                        while (passenger_Class._Equal('b') || passenger_Class != 'c')
-                        {
-                            /* code */
-                        }
+                        getline(cin, passenger_Class);
                         
+                        try{passenger_Class = trim(passenger_Class);}
+                        catch(const char* error){ cout << "Error: " << error << endl;}
 
+
+                        while (!(passenger_Class.compare("b")) || !(passenger_Class.compare("e")))
+                        {
+                            cout << "Invalid Class Please Try Again" << endl;
+                            cout << "Enter the passenger class (b/e): " << endl;
+                            getline(cin, passenger_Class);
+                            while(true){ try
+                            {
+                            passenger_Class = trim(passenger_Class);
+                            }
+                            catch(const char* error){ cout << "Error: " << error << endl;}
+
+                            
+                        }
+                           
+                            
+                            if (!(passenger_Class.compare("b")) || !(passenger_Class.compare("e")))
+                            {
+                                continue;
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+
+                        cout << "Enter Ticket ID:";
+                        cin >> ticket_Id;
+                        cout << "Enter luggage Weight and number of bags\t( BE -> 2   bags each 15KG\t EC -> 2 bags each 10KG" << endl;
+                        while (true)
+                        {
+                            cout << "Number of Bags:";
+                            cin >> luggage_Number;
+                            if ((luggage_Number != 2 || luggage_Number < 0) && luggage_Number > 3)
+                            {
+                                cout << "error luggage number is incorrect try again" << endl;
+                            }
+
+                            else
+                            {
+                                break;
+                            }
+                        }
+
+                        while (true)
+                        {
+                            if (luggage_Number == 0)
+                            {
+                                break;
+                            }
+
+                            else
+                            {
+                                cout << "Enter luggage Weight:";
+                                cin >> luggage_Weight;
+                                if (passenger_Class == "b")
+                                {
+                                    while (true)
+                                    {
+                                        if (!(luggage_Weight > 15) || !(luggage_Weight < 0))
+                                        {
+                                            cout << "Enter bags weight:";
+                                            cin >> luggage_Weight;
+                                            luggage_Id ++; 
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            cout << "Error luggage weight exceeds the limit Continue" << endl;
+                                        }
+                                    }
+                                }
+                                else if (passenger_Class == "e")
+                                {
+                                    while (true)
+                                    {
+
+                                        if (!(luggage_Weight > 10) || !(luggage_Weight < 0))
+                                        {
+                                            cout << "Enter bags weight:";
+                                            cin >> luggage_Weight;
+                                            luggage_Id ++; 
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            cout << "Error luggage weight exceeds the limit" << endl;
+
+                                            continue;
+                                        }
+                                    }
+                                }
+                                
+                            }
+
+                            break;
+
+
+                        }
+
+
+                        break;
+                    case 2:
+                        clearScreen();
+                        break;
+                    case 3:
+                        clearScreen();
+                        break;
+                    case 4:
+                        clearScreen();
+                        return 1;
+                        break;
+
+                    default:
+                        break;
                     }
-                    
-                    break;
-
-                case 2:
-                clearScreen();
-                    break;
-                case 3:
-                clearScreen();
-                    break;
-                case 4:
-                clearScreen();
-                return 1;
-                    break;
-
-                default:
-                    break;
                 }
             }
-
         }
-    }
 
-    return 0;
+        return 0;
+    }
 }
