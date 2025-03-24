@@ -11,7 +11,8 @@
 using namespace std;
 
 // CSV Logging Functions
-void logToCSV(const string& bagId) {
+void logToCSV(const string &bagId)
+{
     auto now = chrono::system_clock::now();
     time_t now_time = chrono::system_clock::to_time_t(now);
     tm local_tm = *localtime(&now_time);
@@ -19,32 +20,41 @@ void logToCSV(const string& bagId) {
     ss << put_time(&local_tm, "%Y-%m-%d %X");
 
     ofstream csvFile("departure_log.csv", ios::app);
-    if (csvFile.is_open()) {
-        if (csvFile.tellp() == 0) {
+    if (csvFile.is_open())
+    {
+        if (csvFile.tellp() == 0)
+        {
             csvFile << "BagID,Timestamp\n";
         }
         csvFile << bagId << "," << ss.str() << "\n";
         csvFile.close();
-    } else {
+    }
+    else
+    {
         cerr << "Unable to open CSV file." << endl;
     }
 }
 
-void printCSVContents() {
+void printCSVContents()
+{
     ifstream csvFile("departure_log.csv");
-    if (csvFile.is_open()) {
+    if (csvFile.is_open())
+    {
         string line;
-        while (getline(csvFile, line)) {
+        while (getline(csvFile, line))
+        {
             cout << line << endl;
         }
         csvFile.close();
-    } else {
+    }
+    else
+    {
         cerr << "No log file found." << endl;
     }
 }
-
 // Luggage Class
-class Luggage {
+class Luggage
+{
 private:
     string passengerName;
     string ticketClass;
@@ -62,44 +72,51 @@ public:
 };
 
 // Queue Class with CSV logging
-class Queue {
+class Queue
+{
 private:
-    Luggage** queueArray;
+    Luggage **queueArray;
     int capacity;
     int front;
     int rear;
     int count;
 
 public:
-    Queue(int size) : capacity(size), front(0), rear(-1), count(0) {
-        queueArray = new Luggage*[capacity];
+    Queue(int size) : capacity(size), front(0), rear(-1), count(0)
+    {
+        queueArray = new Luggage *[capacity];
     }
 
-    ~Queue() {
+    ~Queue()
+    {
         delete[] queueArray;
     }
 
-    void enqueue(Luggage* luggage) {
-        if (isFull()) {
+    void enqueue(Luggage *luggage)
+    {
+        if (isFull())
+        {
             cout << "Queue overflow!" << endl;
             return;
         }
         rear = (rear + 1) % capacity;
         queueArray[rear] = luggage;
         count++;
-        
+
         // Log to CSV
         string prefix = string(1, toupper(luggage->getTicketClass()[0]));
         string bagId = prefix + "-" + to_string(luggage->getBagNumber());
         logToCSV(bagId);
     }
 
-    Luggage* dequeue() {
-        if (isEmpty()) {
+    Luggage *dequeue()
+    {
+        if (isEmpty())
+        {
             cout << "Queue underflow!" << endl;
             return nullptr;
         }
-        Luggage* item = queueArray[front];
+        Luggage *item = queueArray[front];
         front = (front + 1) % capacity;
         count--;
         return item;
@@ -110,31 +127,38 @@ public:
 };
 
 // Stack Class
-class Stack {
+class Stack
+{
 private:
-    Luggage** stackArray;
+    Luggage **stackArray;
     int capacity;
     int top;
 
 public:
-    Stack(int size) : capacity(size), top(-1) {
-        stackArray = new Luggage*[capacity];
+    Stack(int size) : capacity(size), top(-1)
+    {
+        stackArray = new Luggage *[capacity];
     }
 
-    ~Stack() {
+    ~Stack()
+    {
         delete[] stackArray;
     }
 
-    void push(Luggage* luggage) {
-        if (isFull()) {
+    void push(Luggage *luggage)
+    {
+        if (isFull())
+        {
             cout << "Stack overflow!" << endl;
             return;
         }
         stackArray[++top] = luggage;
     }
 
-    Luggage* pop() {
-        if (isEmpty()) {
+    Luggage *pop()
+    {
+        if (isEmpty())
+        {
             cout << "Stack underflow!" << endl;
             return nullptr;
         }
@@ -146,84 +170,100 @@ public:
 };
 
 // System Functions
-void clearScreen() {
+void clearScreen()
+{
     system("cls || clear");
 }
 
-int main() {
-    const int MAX_SIZE = 200;
-    int luggage_id = 0;
-    Queue departure_belt(MAX_SIZE);
-    Stack plane_cargo(MAX_SIZE);
+int main()
+{
+    const int stack_Queue_Size = 200;
+    string passenger_Class;
+    int main_Menu_Choice, luggage_Menu_Choice, passengers_count;
+    int luggage_Id = 0;
+    string passenger_Name, luggage_Id_Prefix;
+    int luggage_Number;
+    double luggage_Weight;
+    bool to_Main_Menu = false;
+    bool add_Passenger_Valid = false;
+    bool switch_Loops = false;
 
-    while(true) {
-        clearScreen();
-        cout << "Airport Luggage System\n";
-        cout << "1. Add Luggage\n2. Process to Plane\n";
-        cout << "3. Show Departure Belt\n4. Show Plane Cargo\n";
-        cout << "5. Display Log File\n6. Exit\nChoice: ";
-        
-        int choice;
-        cin >> choice;
 
-        switch(choice) {
-            case 1: {
-                cin.ignore();
-                cout << "Passenger Name: ";
-                string name;
-                getline(cin, name);
+    Queue departure_Conveyer_Belt(stack_Queue_Size);           
+    Queue arrival_Conveyer_Belt(stack_Queue_Size);            
+    Stack plane_Cargo(stack_Queue_Size);
 
-                string cls;
-                while(true) {
-                    cout << "Class (Business/Economy): ";
-                    getline(cin, cls);
-                    transform(cls.begin(), cls.end(), cls.begin(), ::tolower);
-                    if(cls == "business" || cls == "economy") break;
-                    cout << "Invalid class! Please try again.\n";
+    while (true)
+    {
+        cout << "1.Start System\t" << "2. Exit application\n";
+        cin >> main_Menu_Choice;
+        if (!(main_Menu_Choice == 1 || main_Menu_Choice == 2))
+        {
+            while (true)
+            {
+                cout << "incorrect Choice  Please Try Again" << endl;
+                cin >> main_Menu_Choice;
+                if (main_Menu_Choice == 1 || main_Menu_Choice == 2)
+                {
+                    break;
                 }
-
-                Luggage* newLuggage = new Luggage(name, cls, 0.0, ++luggage_id);
-                departure_belt.enqueue(newLuggage);
-                cout << "Luggage added to departure belt!\n";
-                break;
-            }
-            
-            case 2: {
-                while(!departure_belt.isEmpty()) {
-                    Luggage* luggage = departure_belt.dequeue();
-                    plane_cargo.push(luggage);
+                else
+                {
+                    continue;
                 }
-                cout << "All luggage moved to plane cargo!\n";
-                break;
             }
-            
-            case 3: {
-                cout << "Departure Belt Contents:\n";
-                // Implementation to show queue contents
-                break;
-            }
-            
-            case 4: {
-                cout << "Plane Cargo Contents:\n";
-                // Implementation to show stack contents
-                break;
-            }
-            
-            case 5: {
-                clearScreen();
-                cout << "Luggage Log File Contents:\n";
-                printCSVContents();
-                break;
-            }
-            
-            case 6:
-                return 0;
-            
-            default:
-                cout << "Invalid choice! Please try again.\n";
         }
-        cout << "\nPress Enter to continue...";
-        cin.ignore();
-        cin.get();
+        else if (main_Menu_Choice == 2)
+        {
+            cout << "good Bye";
+            return 1;
+        }
+        else if (main_Menu_Choice == 1)
+        {
+            clearScreen();
+            while (!to_Main_Menu)
+            {
+                cout<< "1. Enter passengers luggage\t2. Show luggage in conveyer belt\n	3. show luggage in plane’s cargo\t4.Exit application"<< endl;
+                cin >> luggage_Menu_Choice;
+                switch (luggage_Menu_Choice)
+                {
+                case 1:
+                    clearScreen();
+                    cin >> add_Passenger_Valid;
+                    while (!add_Passenger_Valid)
+                    {
+                        cout << "Enter Passenger Name\n";
+                        cin >> passenger_Name;
+                        cout << "Enter the passenger class (b/e): " << endl;
+                        cin >> passenger_Class;
+                        while (passenger_Class._Equal('b') || passenger_Class != 'c')
+                        {
+                            /* code */
+                        }
+                        
+
+                    }
+                    
+                    break;
+
+                case 2:
+                clearScreen();
+                    break;
+                case 3:
+                clearScreen();
+                    break;
+                case 4:
+                clearScreen();
+                return 1;
+                    break;
+
+                default:
+                    break;
+                }
+            }
+
+        }
     }
+
+    return 0;
 }
