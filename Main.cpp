@@ -5,8 +5,6 @@
 #include <chrono>
 #include <iomanip>
 #include <sstream>
-#include <algorithm>
-#include <limits>
 using namespace std;
 
 void logToCSV(const string &bagId, const string &ticketId, const string &passengerName)
@@ -65,130 +63,80 @@ void printCSVContents()
     }
 }
 
-int getValidatedInt(int min, int max) {
-    int x;
-    while (true) {
-        if (cin >> x) {
-            if (x >= min && x <= max) {
-                // Clear buffer AFTER validation
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                return x;
-            }
-            // Clear buffer for out-of-range numbers
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "Please enter between " << min << "-" << max << ": ";
-        } else {
-            // Handle non-integer input
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "Invalid input. Please enter an integer: ";
-        }
-    }
-}
-
-double getValidatedDouble(double min, double max) {
-    double x;
-    while (true) {
-        if (cin >> x) {
-            if (x >= min && x <= max) {
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                return x;
-            }
-            cout << "Error luggage weight exceeds the limit" << endl;
-        } else {
-            cout << "Invalid input. Please enter a number: ";
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        }
-    }
-}
-
-string trim(const string &str) {
-    size_t first = str.find_first_not_of(" \t\n\r");
-    if (first == string::npos) return "";
-    size_t last = str.find_last_not_of(" \t\n\r");
-    return str.substr(first, (last - first + 1));
-}
-
-// Validate name contains only letters and spaces
-bool isValidName(const string &name) {
-    if (name.empty()) return false;
-    return all_of(name.begin(), name.end(), [](char c) {
-        return isalpha(c) || c == ' ' || c == '\''; // Allow apostrophes
-    });
-}
-
-class Node
-{
-public:
-    string data;
-    Node *next;
-    Node()
-    {
-        data = "";
-        next = nullptr;
-    }
-};
-
 // Queue Class with CSV logging
 class customQueue
 {
 private:
-    Node *front;
-    Node *rear;
+    int queue_Front, queue_Tail;
+    string *queueArray;
+    int size;
+    int current_Size;
 
 public:
-    customQueue()
+    customQueue(int size)
     {
-        front = nullptr;
-        rear = nullptr;
+        this->size = size;
+        queueArray = new string[size];
+        queue_Front = 0;
+        queue_Tail = 0;
+        current_Size = 0;
     }
     ~customQueue()
     {
-        while (front != nullptr)
-        {
-            Node *temp = front;
-            front = front->next;
-            delete temp;
-        }
+        delete[] queueArray; // Free dynamically allocated memory
     }
-
     bool isEmpty()
     {
-        return (front == nullptr);
+        if (current_Size == 0)
+        {
+            cout << "the Queue is empty" << endl;
+            return true;
+        }
+        else
+            return false;
+    }
+    bool isFull()
+    {
+        return current_Size == size;
     }
 
     void enqueue(string item)
-    {
-        Node *newNode = new Node();
-        newNode->data = item;
-        newNode->next = nullptr;
-        if (rear == nullptr)
-        {
-            front = rear = newNode;
-            return;
-        }
-        rear->next = newNode;
-        rear = newNode;
-    }
 
+    {
+        if (isFull() == true)
+        {
+            cout << "Queue Overflow" << endl;
+        }
+        else
+        {
+            queueArray[queue_Tail] = item;
+            queue_Tail = (queue_Tail + 1) % size; // Circular behavior
+            current_Size++;
+        }
+    }
     string dequeue()
     {
-        if (isEmpty())
+        if (isEmpty() == true)
         {
             cout << "Queue Underflow" << endl;
             return ""; // Return an empty string if the queue is empty
         }
         else
         {
-            Node *temp = front;
-            string value = front->data;
-            front = front->next;
-            if (front == nullptr)
-                rear = nullptr; // If the queue becomes empty, set rear to nullptr
-            delete temp;
+            string value = queueArray[queue_Front];
+            queue_Front = (queue_Front + 1) % size; // Circular behavior
+            current_Size--;
             return value; // Return the dequeued item
         }
+    }
+
+    void peek()
+    {
+        if (isEmpty())
+        {
+            cout << "Queue is empty. No peek value." << endl;
+        }
+        cout << queueArray[queue_Front] << endl;
     }
 
     void display()
@@ -199,11 +147,14 @@ public:
             return;
         }
         cout << "Queue Contents:" << endl;
-        Node *current = front;
-        while (current != nullptr)
+
+        int count = 0;
+        int index = queue_Front;
+        while (count < current_Size)
         {
-            cout << current->data << endl;
-            current = current->next;
+            cout << queueArray[index] << endl;
+            index = (index + 1) % size;
+            count++;
         }
     }
 };
@@ -212,73 +163,88 @@ public:
 class customStack
 {
 private:
-    Node *top;
+    string *stackArray; // Array to store stack elements
+    int size;           // Maximum size
+    int top;            // Index of the top element
 
 public:
-    customStack()
+    customStack(int size) // constructor
     {
-        top = nullptr;
-    }
-    ~customStack()
-    {
-        while (top != nullptr)
-        {
-            Node *temp = top;
-            top = top->next;
-            delete temp;
-        }
-    }
-    bool isEmpty()
-    {
-        return (top == nullptr);
+        this->size = size;
+        stackArray = new string[size];
+        top = -1;
     }
 
-    void push(string item)
+    ~customStack() // deconstructor
     {
-        Node *newNode = new Node();
-        newNode->data = item;
-        newNode->next = top;
-        top = newNode;
+        delete[] stackArray;
+    }
+
+    bool isEmpty()
+    {
+        return (top == -1);
+    }
+
+    bool isFull()
+    {
+        return (top == (size - 1));
+    }
+
+    void push(string newItem)
+    {
+        if (isFull() == true)
+        {
+            cout << "Stack Overflow";
+        }
+        else
+        {
+            stackArray[++top] = newItem;
+            cout << "pushed " << newItem << endl;
+        }
     }
 
     string pop()
     {
-        if (isEmpty())
+        if (isEmpty() == true)
         {
-            cout << "Stack Underflow" << endl;
-            return ""; // Return an empty string if the stack is empty
+            cout << "Stack Underflow";
+            return "";
         }
         else
         {
-            Node *temp = top;
-            string value = top->data;
-            top = top->next;
-            delete temp;
-            return value; // Return the popped item
+            string item = stackArray[top--];
+            cout << "popped item: " << item << endl;
+            return item;
         }
     }
 
-    void peek()
+    string getTop()
     {
-        if (isEmpty())
+        if (isEmpty() == true)
         {
-            cout << "Stack is empty. No peek value." << endl;
+            cout << "stack is empty" << endl;
+            return "";
         }
-        cout << top->data << endl;
+        else
+        {
+            return stackArray[top];
+        }
     }
+
     void display()
     {
         if (isEmpty())
         {
-            cout << "Stack is empty." << endl;
-            return;
+            cout << "Stack is empty!" << endl;
         }
-        cout << "Stack Contents:" << endl;
-        Node *current = top;
-        while (current != nullptr)
+        else
         {
-            cout << current->data << endl;
-            current = current->next;
+            cout << "Stack elements (top to bottom): ";
+            for (int i = top; i >= 0; i--)
+            {
+                cout << stackArray[i] << endl;
+            }
+            cout << endl;
         }
     }
 };
@@ -301,15 +267,13 @@ int main()
     bool to_Main_Menu = false;
     bool add_Passenger_Valid = true;
     bool switch_Loops = false;
-    customQueue departure_Conveyer_Belt = customQueue();
-    customQueue arrival_Conveyer_Belt = customQueue();
-    customStack plane_Cargo = customStack();
+    customQueue departure_Conveyer_Belt(stack_Queue_Size);
+    customQueue arrival_Conveyer_Belt(stack_Queue_Size);
+    customStack plane_Cargo(stack_Queue_Size);
     while (true)
     {
         cout << "1.Start System\t" << "2. Exit application\n";
-        
-        int main_Menu_Choice = getValidatedInt(1, 2);
-
+        cin >> main_Menu_Choice;
         if (!(main_Menu_Choice == 1 || main_Menu_Choice == 2))
         {
             while (true)
@@ -338,7 +302,7 @@ int main()
             {
                 clearScreen();
                 cout << "1. Enter passengers luggage\t2. Show luggage in conveyer belt\n3. show luggage in plane's cargo\t4.Show the luggage History\n 5.Exit" << endl;
-                int luggage_Menu_Choice = getValidatedInt(1, 5);
+                cin >> luggage_Menu_Choice;
                 switch (luggage_Menu_Choice)
                 {
                 case 1:
@@ -347,28 +311,9 @@ int main()
                     {
                         cout << "Enter Passenger Name\n";
                         cin.ignore();
-                        
-                        while (true)
-                        {
-                           getline(cin, passenger_Name);
-                           passenger_Name = trim(passenger_Name);
-                           if(passenger_Name.empty())
-                           {
-                               cout << "Invalid name. Please enter a valid name: ";
-                               continue;
-                           }
-                           else if (isValidName(passenger_Name))
-                            {
-                                 break;
-                            }
-                            else
-                            {
-                                 cout << "Invalid name. Please enter a valid name: ";
-                            } 
-                        }
-                        
+                        getline(cin, passenger_Name);
                         cout << "Enter the passenger class (Business -> 1     Economy -> 2): " << endl;
-                        int passenger_Class = getValidatedInt(1, 2);
+                        cin >> passenger_Class;
                         if ((passenger_Class != 1) && (passenger_Class != 2))
                         {
                             while ((passenger_Class != 1) || (passenger_Class != 2))
@@ -395,9 +340,20 @@ int main()
                         cout << "Enter Ticket ID:";
                         cin >> ticket_Id;
                         cout << "Enter luggage Weight and number of bags\t( BE -> 2   bags each 15KG\t EC -> 2 bags each 10KG" << endl;
-                        int luggage_Number = getValidatedInt(0, 2);
+                        while (true)
+                        {
+                            cout << "Number of Bags:";
+                            cin >> luggage_Number;
+                            if (luggage_Number < 0 || luggage_Number > 2)
+                            {
+                                cout << "error luggage number is incorrect try again" << endl;
+                            }
 
-                        
+                            else
+                            {
+                                break;
+                            }
+                        }
 
                         while (true)
                         {
@@ -416,8 +372,12 @@ int main()
                                         while (true)
                                         {
                                             cout << "Enter luggage weight:";
-                                            double luggage_Weight = getValidatedDouble(0, 15);
-                                            if ((luggage_Weight <= 15) || (luggage_Weight >= 0))
+                                            cin >> luggage_Weight;
+                                            if ((luggage_Weight > 15) || (luggage_Weight < 0))
+                                            {
+                                                cout << "Error luggage weight exceeds the limit" << endl;
+                                            }
+                                            else
                                             {
                                                 luggage_Id++;
                                                 luggage_Id_Prefix = "BE";
@@ -437,8 +397,13 @@ int main()
                                         while (true)
                                         {
                                             cout << "Enter luggage weight:";
-                                            double luggage_Weight = getValidatedDouble(0, 15);
-                                            if ((luggage_Weight <= 10) || (luggage_Weight >= 0))
+                                            cin >> luggage_Weight;
+                                            if ((luggage_Weight > 10) || (luggage_Weight < 0))
+                                            {
+                                                cout << "Error luggage weight exceeds the limit" << endl;
+                                                continue;
+                                            }
+                                            else
                                             {
                                                 luggage_Id++;
                                                 luggage_Id_Prefix = "EC";
@@ -483,14 +448,14 @@ int main()
                     clearScreen();
 
                     cout << "1.Show luggage in the departure conveyer belt\t2. Show luggage in the arrival conveyer belt \n3.Exit" << endl;
-                    luggage_Menu_Choice = getValidatedInt(1, 3);
+                    cin >> luggage_Menu_Choice;
                     while (true)
                     {
                         if (luggage_Menu_Choice != 1 && luggage_Menu_Choice != 2 && luggage_Menu_Choice != 3)
                         {
                             cout << "Invalid Choice Please Try Again" << endl;
                             cout << "1.Show luggage in the departure conveyer belt\t2. Show luggage in the arrival conveyer belt" << endl;
-                            luggage_Menu_Choice = getValidatedInt(1, 3);
+                            cin >> luggage_Menu_Choice;
                         }
                         else
                         {
@@ -502,9 +467,17 @@ int main()
                     {
                         departure_Conveyer_Belt.display();
                         cout << "Press any key to continue" << endl;
+                        cin.ignore();
                         cin.get();
+                        clearScreen();
                         cout << "\n1. To move luggage to the plane's cargo\t2. To exit" << endl;
-                        luggage_Menu_Choice = getValidatedInt(1, 2);
+                        cin >> luggage_Menu_Choice;
+                        while (luggage_Menu_Choice != 1 && luggage_Menu_Choice != 2)
+                        {
+                            cout << "Invalid Choice Please Try Again" << endl;
+                            cout << "\n1. To move luggage to the plane's cargo\t2. To exit" << endl;
+                            cin >> luggage_Menu_Choice;
+                        }
                         if (luggage_Menu_Choice == 1)
                         {
                             while (!departure_Conveyer_Belt.isEmpty())
@@ -528,7 +501,9 @@ int main()
 
                         arrival_Conveyer_Belt.display();
                         cout << "Press any key to continue" << endl;
+                        cin.ignore();
                         cin.get();
+                        clearScreen();
                     }
                     else if (luggage_Menu_Choice == 3)
                     {
@@ -540,16 +515,21 @@ int main()
                     clearScreen();
                     plane_Cargo.display();
                     cout << "Press any key to continue" << endl;
+                    cin.ignore();
                     cin.get();
                     cout << "1. To offload the luggage into the conveyer belt\t 2.to Exit" << endl;
-                    luggage_Menu_Choice = getValidatedInt(1, 2);
+                    cin >> luggage_Menu_Choice;
+                    while (luggage_Menu_Choice != 1 && luggage_Menu_Choice != 2)
+                    {
+                        cout << "Invalid Choice Please Try Again" << endl;
+                        cout << "1. To offload the luggage into the conveyer belt\t 2.to Exit" << endl;
+                        cin >> luggage_Menu_Choice;
+                    }
                     if (luggage_Menu_Choice == 1)
                     {
                         while (!plane_Cargo.isEmpty())
                         {
-                            string tmpluggage = plane_Cargo.pop();
-                            cout << "Offloading luggage: " << tmpluggage << endl;
-                            arrival_Conveyer_Belt.enqueue(tmpluggage);
+                            arrival_Conveyer_Belt.enqueue(plane_Cargo.pop());
                             if (plane_Cargo.isEmpty())
                             {
                                 cout << "All luggage has been offloaded into the conveyer belt" << endl;
@@ -567,10 +547,11 @@ int main()
                     clearScreen();
                     printCSVContents();
                     cout << "Press any key to continue" << endl;
+                    cin.ignore();
                     cin.get();
                     break;
 
-                case 5:
+                    case 5:
                     clearScreen();
                     return 1;
                     break;
